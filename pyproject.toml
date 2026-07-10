@@ -23,6 +23,8 @@ dependencies = [
     "pillow>=10.2.0",
     "tqdm>=4.66.0",
     "requests>=2.31.0",
+    "onnx>=1.15.0",
+    "onnxruntime>=1.17.0",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +35,8 @@ rdd-train = "road_damage.train:main"
 rdd-eval = "road_damage.evaluate:main"
 rdd-infer = "road_damage.inference:main"
 rdd-serve = "road_damage.api:main"
+rdd-export-onnx = "road_damage.export_onnx:main"
+rdd-benchmark = "road_damage.benchmark:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
