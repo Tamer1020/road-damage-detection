@@ -1,0 +1,5 @@
+# Lightweight deps for running the test suite and linter without pulling
+# torch/ultralytics. The unit tests only touch config, dataset, io, visualize.
+-r requirements.txt
+pytest>=8.0.0
+ruff>=0.4.0

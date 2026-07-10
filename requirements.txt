@@ -1,0 +1,14 @@
+# Runtime dependencies (pinned by lower bound for reproducibility).
+# GPU users: install the CUDA build of torch/torchvision from pytorch.org first.
+ultralytics>=8.2.0
+torch>=2.2.0
+torchvision>=0.17.0
+opencv-python-headless>=4.9.0
+numpy>=1.26.0
+PyYAML>=6.0.1
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+pillow>=10.2.0
+tqdm>=4.66.0
+requests>=2.31.0
