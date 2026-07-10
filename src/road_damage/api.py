@@ -6,6 +6,8 @@ the /health probe responds even before weights are in memory.
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import JSONResponse
 
@@ -38,8 +40,11 @@ def health() -> dict:
 
 @app.post("/predict")
 async def predict(
-    file: UploadFile = File(...),
-    annotate: bool = Query(False, description="Include base64 annotated image."),
+    file: Annotated[UploadFile, File(...)],
+    annotate: Annotated[
+        bool,
+        Query(description="Include base64 annotated image."),
+    ] = False,
 ) -> JSONResponse:
     if file.content_type not in {"image/jpeg", "image/png"}:
         raise HTTPException(status_code=415, detail="Only JPEG/PNG are supported.")

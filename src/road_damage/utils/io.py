@@ -19,7 +19,7 @@ def read_image(path: str | Path) -> np.ndarray:
 def write_image(path: str | Path, image: np.ndarray) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     if not cv2.imwrite(str(path), image):
-        raise IOError(f"Could not write image: {path}")
+        raise OSError(f"Could not write image: {path}")
 
 
 def decode_image(data: bytes) -> np.ndarray:

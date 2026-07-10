@@ -7,7 +7,6 @@ Isolating the framework here means the rest of the app depends on plain
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
 
 import numpy as np
 from ultralytics import YOLO
@@ -16,7 +15,7 @@ from .detection import Detection
 
 
 class RoadDamageModel:
-    def __init__(self, weights: str | Path, device: Union[int, str] = "cpu") -> None:
+    def __init__(self, weights: str | Path, device: int | str = "cpu") -> None:
         self.model = YOLO(str(weights))
         self.device = device
         # Ultralytics exposes the class-id -> name mapping learned at train time.

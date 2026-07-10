@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import yaml
 
@@ -38,7 +38,7 @@ class TrainConfig:
     epochs: int = 100
     imgsz: int = 640
     batch: int = 16
-    device: Union[int, str] = 0
+    device: int | str = 0
     project: str = "runs"
     name: str = "rdd_exp"
     patience: int = 20
@@ -50,7 +50,7 @@ class InferenceConfig:
     conf: float = 0.25
     iou: float = 0.45
     imgsz: int = 640
-    device: Union[int, str] = "cpu"
+    device: int | str = "cpu"
 
 
 @dataclass
@@ -70,7 +70,7 @@ class Config:
     api: ApiConfig = field(default_factory=ApiConfig)
 
     @classmethod
-    def from_dict(cls, raw: dict[str, Any] | None) -> "Config":
+    def from_dict(cls, raw: dict[str, Any] | None) -> Config:
         raw = raw or {}
         return cls(
             project=ProjectConfig(**raw.get("project", {})),
@@ -82,7 +82,7 @@ class Config:
         )
 
     @classmethod
-    def load(cls, path: str | Path) -> "Config":
+    def load(cls, path: str | Path) -> Config:
         path = Path(path)
         if not path.exists():
             raise FileNotFoundError(f"Config not found: {path}")
