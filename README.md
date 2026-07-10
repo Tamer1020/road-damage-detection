@@ -1,13 +1,14 @@
 # Road Damage Detection
 
-Detect and classify road surface damage (cracks and potholes) from street-level
-imagery using a YOLO object detector. The project ships a training pipeline, an
-evaluation step, a CLI for single-image inference, and a FastAPI service for
-online prediction.
+Detect and classify road surface damage such as cracks and potholes from street-level road images using a YOLO object detection model.
 
-## Damage classes
+This project is designed as a complete Computer Vision pipeline for road damage detection. It includes dataset preparation, Pascal VOC XML to YOLO conversion, YOLO training, evaluation, single-image inference, a FastAPI inference service, ONNX export, and FPS / latency benchmarking for Edge AI deployment.
 
-Following the RDD2022 convention (4-class subset):
+## Project Overview
+
+Road infrastructure inspection is usually expensive, slow, and manual. This project explores how deep learning can be used to automatically detect visible road damage from camera images.
+
+The project focuses on four common road damage classes from the RDD2022 dataset:
 
 | ID | Code | Meaning |
 |---:|:-----|:--------|
@@ -16,45 +17,185 @@ Following the RDD2022 convention (4-class subset):
 | 2 | D20 | Alligator crack |
 | 3 | D40 | Pothole |
 
+## Features
+
+- YOLO-based road damage detection
+- RDD2022 dataset support
+- Pascal VOC XML to YOLO TXT annotation conversion
+- Automatic train / validation split
+- Config-driven training and inference
+- CLI tools for training, evaluation, and inference
+- FastAPI inference service
+- ONNX export for deployment
+- FPS / latency benchmark tool
+- Unit tests with pytest
+- Docker support
+- GitHub Actions CI workflow
+
+## Repository Structure
+
+```text
+road-damage-detection/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── configs/
+│   └── config.yaml
+├── data/
+│   └── .gitkeep
+├── models/
+│   └── .gitkeep
+├── notebooks/
+│   └── .gitkeep
+├── outputs/
+│   └── .gitkeep
+├── scripts/
+│   ├── download_data.py
+│   └── prepare_dataset.py
+├── src/
+│   └── road_damage/
+│       ├── __init__.py
+│       ├── api.py
+│       ├── benchmark.py
+│       ├── config.py
+│       ├── dataset.py
+│       ├── detection.py
+│       ├── evaluate.py
+│       ├── export_onnx.py
+│       ├── inference.py
+│       ├── model.py
+│       ├── train.py
+│       ├── visualize.py
+│       └── utils/
+│           ├── __init__.py
+│           ├── io.py
+│           └── logging.py
+├── tests/
+├── Dockerfile
+├── pyproject.toml
+├── requirements.txt
+├── requirements-dev.txt
+└── README.md
+```
+
 ## Dataset
 
-This project expects the **RDD2022** dataset (Road Damage Detector, Arya et al.).
-The raw annotations are PASCAL VOC XML; `scripts/prepare_dataset.py` converts them
-to the YOLO text format and creates the `train/val` split.
+This project expects the RDD2022 dataset.
 
-- Source repo: https://github.com/sekilab/RoadDamageDetector
-- Download the archive, unpack it under `data/`, then run the prepare script.
+The raw dataset annotations are provided in Pascal VOC XML format. The script `scripts/prepare_dataset.py` converts these XML annotations into YOLO TXT format and creates a train / validation split.
 
-Expected on-disk layout after preparation:
+Source repository:
+
+```text
+https://github.com/sekilab/RoadDamageDetector
+```
+
+Expected raw dataset example:
+
+```text
+data/raw/Japan/
+├── Annotations/
+│   ├── image_001.xml
+│   └── ...
+└── JPEGImages/
+    ├── image_001.jpg
+    └── ...
+```
+
+Expected prepared dataset layout:
 
 ```text
 data/rdd2022/
 ├── images/
-│ ├── train/
-│ └── val/
+│   ├── train/
+│   └── val/
 ├── labels/
-│ ├── train/
-│ └── val/
-└── data.yaml # generated automatically by the pipeline
+│   ├── train/
+│   └── val/
+└── data.yaml
 ```
+
+Large datasets, trained weights, and generated outputs are ignored by Git and should not be uploaded to the repository.
 
 ## Setup
 
+Create and activate a virtual environment:
+
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .                   # installs the road_damage package + CLIs
 ```
 
-> GPU users: install the CUDA build of PyTorch first (see pytorch.org), then the
-> rest of the requirements.
-
-## Data preparation
+On Windows:
 
 ```bash
-# 1. Point --src at the unpacked RDD country folder (contains Annotations/ + JPEGImages/)
+.venv\Scripts\activate
+```
+
+On Linux / macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+pip install -e .
+```
+
+For development and testing:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+## Configuration
+
+The project is controlled through:
+
+```text
+configs/config.yaml
+```
+
+Important configuration sections:
+
+- `data`: dataset paths and class names
+- `model`: pretrained weights and trained checkpoint path
+- `train`: training hyperparameters
+- `inference`: confidence threshold, IoU threshold, image size, and device
+- `api`: FastAPI host, port, and upload size limit
+
+Example:
+
+```yaml
+model:
+  weights: yolov8n.pt
+  checkpoint: models/best.pt
+
+inference:
+  conf: 0.25
+  iou: 0.45
+  imgsz: 640
+  device: cpu
+```
+
+## Data Preparation
+
+Convert RDD2022 Pascal VOC XML annotations to YOLO format:
+
+```bash
+python scripts/prepare_dataset.py ^
+    --src data/raw/Japan ^
+    --dst data/rdd2022 ^
+    --val-ratio 0.2 ^
+    --seed 42
+```
+
+Linux / macOS version:
+
+```bash
 python scripts/prepare_dataset.py \
     --src data/raw/Japan \
     --dst data/rdd2022 \
@@ -62,70 +203,298 @@ python scripts/prepare_dataset.py \
     --seed 42
 ```
 
+The script creates:
+
+```text
+data/rdd2022/images/train
+data/rdd2022/images/val
+data/rdd2022/labels/train
+data/rdd2022/labels/val
+```
+
+The YOLO dataset descriptor `data.yaml` is generated automatically during training and evaluation.
+
 ## Training
+
+Train the model:
 
 ```bash
 rdd-train --config configs/config.yaml
-# or: python -m road_damage.train --config configs/config.yaml
 ```
 
-Weights land under `runs/<name>/weights/best.pt`. Copy that to the path in
-`model.checkpoint` (default `models/best.pt`) for inference.
+Alternative:
+
+```bash
+python -m road_damage.train --config configs/config.yaml
+```
+
+Training outputs are saved under:
+
+```text
+runs/
+```
+
+After training, copy the best weights to:
+
+```text
+models/best.pt
+```
+
+The inference tools use the checkpoint path defined in:
+
+```yaml
+model:
+  checkpoint: models/best.pt
+```
 
 ## Evaluation
+
+Evaluate the trained model on the validation split:
 
 ```bash
 rdd-eval --config configs/config.yaml --split val
 ```
 
-Reports mAP@50 and mAP@50-95.
+The evaluation reports YOLO metrics such as:
 
-## Inference (CLI)
+- mAP@50
+- mAP@50-95
+
+## Inference CLI
+
+Run inference on one image:
 
 ```bash
 rdd-infer --config configs/config.yaml --image path/to/street.jpg --save
 ```
 
-Prints detections as JSON and writes an annotated image to `outputs/`.
+The command prints detections as JSON and optionally saves an annotated image to:
 
-## Inference (API)
+```text
+outputs/
+```
+
+Example output format:
+
+```json
+[
+  {
+    "class_id": 0,
+    "label": "D00",
+    "confidence": 0.87,
+    "bbox": [120.5, 85.0, 310.2, 160.8]
+  }
+]
+```
+
+## Inference API
+
+Start the FastAPI server:
 
 ```bash
 rdd-serve
-# or: uvicorn road_damage.api:app --host 0.0.0.0 --port 8000
 ```
 
-Endpoints:
-
-- `GET  /health` → liveness probe
-- `POST /predict` → multipart image upload, returns JSON detections; pass
-  `?annotate=true` to also get a base64 annotated image.
+Alternative:
 
 ```bash
-curl -s -F "file=@street.jpg" "http://localhost:8000/predict?annotate=false" | jq
+uvicorn road_damage.api:app --host 0.0.0.0 --port 8000
 ```
+
+Health check:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+Prediction endpoint:
+
+```text
+POST /predict
+```
+
+Example request:
+
+```bash
+curl -s -F "file=@street.jpg" "http://127.0.0.1:8000/predict?annotate=false"
+```
+
+Use `annotate=true` to return a base64 encoded annotated image.
+
+## Export to ONNX
+
+After training, export the trained YOLO checkpoint to ONNX:
+
+```bash
+rdd-export-onnx --config configs/config.yaml
+```
+
+Custom output path:
+
+```bash
+rdd-export-onnx --output models/road_damage.onnx --imgsz 640
+```
+
+Export with a fixed ONNX opset and dynamic input axes:
+
+```bash
+rdd-export-onnx --opset 12 --dynamic
+```
+
+ONNX is useful because it allows the trained model to run outside the PyTorch training environment, for example with ONNX Runtime, TensorRT, or OpenVINO.
+
+This is important for Edge AI because deployment devices often need smaller and faster runtimes than a full PyTorch installation.
+
+## FPS / Latency Benchmark
+
+Measure inference speed on one image:
+
+```bash
+rdd-benchmark --image samples/street.jpg
+```
+
+Measure inference speed on a folder of images:
+
+```bash
+rdd-benchmark --folder samples/ --warmup 10 --runs 200 --save-json
+```
+
+The benchmark reports:
+
+- mean latency
+- median latency
+- minimum latency
+- maximum latency
+- p95 latency
+- average FPS
+
+Example output shape:
+
+```text
+=== Benchmark summary ===
+Device        : cpu
+Image size    : 640
+Images        : 1
+Warmup / Runs : 5 / 50
+Latency (ms)  : mean <ms> | median <ms> | min <ms> | max <ms> | p95 <ms>
+Throughput    : <fps> FPS
+=========================
+```
+
+No fake benchmark numbers are included in this repository. The benchmark values depend on the trained model, input resolution, and hardware.
+
+## Why Edge AI Matters
+
+For road damage detection, accuracy is not the only important factor. A model may also need to run in real time on limited hardware, such as:
+
+- vehicle-mounted cameras
+- industrial edge devices
+- roadside inspection systems
+- embedded GPU platforms
+- CPU-only gateways
+
+That is why this project includes ONNX export and FPS benchmarking. These tools make it possible to compare model speed, latency, and deployment readiness.
 
 ## Docker
 
+Build the Docker image:
+
 ```bash
 docker build -t road-damage-detection .
+```
+
+Run the API container:
+
+```bash
 docker run --rm -p 8000:8000 -v "$(pwd)/models:/app/models" road-damage-detection
 ```
 
-The image runs the API as a non-root user with a container HEALTHCHECK.
+The Docker image runs the API as a non-root user and includes a health check.
 
 ## Testing
 
+Run the test suite:
+
 ```bash
-pip install -r requirements-dev.txt
 pytest -q
 ```
 
-## Configuration
+Current test coverage includes:
 
-All runtime behaviour is driven by `configs/config.yaml` and loaded into typed
-dataclasses in `road_damage/config.py`. Override any key by editing the YAML;
-no code changes required.
+- config loading
+- dataset YAML generation
+- image encoding / decoding
+- visualization utilities
+
+Expected result:
+
+```text
+9 passed
+```
+
+## Project Results
+
+This section should be updated after training the model.
+
+Planned results to include:
+
+- example prediction images
+- validation metrics
+- inference speed
+- ONNX export result
+- benchmark JSON output
+
+No fake results are reported before actual training and testing.
+
+## What I Learned
+
+This project demonstrates practical experience with:
+
+- object detection using YOLO
+- road damage detection datasets
+- annotation format conversion
+- Pascal VOC XML parsing
+- YOLO TXT label generation
+- model training and evaluation
+- inference visualization with OpenCV
+- API deployment with FastAPI
+- ONNX model export
+- FPS and latency benchmarking
+- Python package structure
+- unit testing
+- Docker-based deployment
+
+## Limitations
+
+Current limitations:
+
+- The model must be trained before real inference can be performed.
+- The repository does not include the full RDD2022 dataset because it is too large.
+- Benchmark results depend strongly on the hardware.
+- The first version focuses on bounding-box detection only.
+- No INT8 quantization is implemented yet.
+- No TensorRT deployment is included yet.
+
+## Next Steps
+
+Possible future improvements:
+
+- Train on multiple RDD2022 country subsets
+- Compare YOLOv8n, YOLOv8s, and YOLOv8m
+- Add TensorRT export
+- Add ONNX Runtime inference
+- Add INT8 quantization
+- Add confusion matrix visualization
+- Add example prediction images to the README
+- Add a small demo video
+- Add experiment tracking
+- Deploy the API on a cloud or edge device
 
 ## License
 
