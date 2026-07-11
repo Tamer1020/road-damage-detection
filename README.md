@@ -516,67 +516,125 @@ curl -s -F "file=@street.jpg" "http://127.0.0.1:8000/predict?annotate=false"
 
 Use `annotate=true` to return a base64 encoded annotated image.
 
-## Export to ONNX
+## Deployment: ONNX Export & Inference Benchmark
 
-After training, export the trained YOLO checkpoint to ONNX:
+After training, the YOLOv8n checkpoint was exported to **ONNX** with a fixed 640×640 input size.
 
-```bash
-rdd-export-onnx --config configs/config_train.yaml
-```
+The goal of this step is to verify that the model can run outside the PyTorch training environment and to measure real inference latency across different backends.
 
-Custom output path:
-
-```bash
-rdd-export-onnx --config configs/config_train.yaml --output models/road_damage.onnx --imgsz 640
-```
-
-Export with a fixed ONNX opset and dynamic input axes:
-
-```bash
-rdd-export-onnx --config configs/config_train.yaml --opset 12 --dynamic
-```
-
-ONNX is useful because it allows the trained model to run outside the PyTorch training environment, for example with ONNX Runtime, TensorRT, or OpenVINO.
-
-This is important for Edge AI because deployment devices often need smaller and faster runtimes than a full PyTorch installation.
-
-## FPS / Latency Benchmark
-
-Measure inference speed on one image:
-
-```bash
-rdd-benchmark --config configs/config_train.yaml --image path/to/street.jpg
-```
-
-Measure inference speed on a folder of images:
-
-```bash
-rdd-benchmark --config configs/config_train.yaml --folder assets/predictions --warmup 10 --runs 100 --save-json
-```
-
-The benchmark reports:
-
-- mean latency
-- median latency
-- minimum latency
-- maximum latency
-- p95 latency
-- average FPS
-
-Example output shape:
+The exported ONNX model is stored locally as:
 
 ```text
-=== Benchmark summary ===
-Device        : 0
-Image size    : 640
-Images        : 8
-Warmup / Runs : 10 / 100
-Latency (ms)  : mean <ms> | median <ms> | min <ms> | max <ms> | p95 <ms>
-Throughput    : <fps> FPS
-=========================
+models/road_damage_640.onnx
 ```
 
-Measured FPS / latency results are planned as the next step.
+The ONNX model file is not committed directly to Git because model binaries are ignored. It is intended to be published through a GitHub Release.
+
+### ONNX Export
+
+Export command:
+
+```bash
+rdd-export-onnx --config configs/config_train.yaml --output models/road_damage_640.onnx --imgsz 640
+```
+
+Export result:
+
+| Item | Value |
+|---|---:|
+| ONNX model size | 11.7 MB |
+| Input size | 640×640 |
+| Export type | Static input size |
+
+A static input size was used because the inference pipeline is designed around a fixed deployment resolution. This is common in edge and real-time systems, where predictable latency is often more important than dynamic input flexibility.
+
+### ONNX Runtime Verification
+
+The exported ONNX model was verified with **ONNX Runtime** and compared against the original PyTorch checkpoint on the same validation image.
+
+Verification command:
+
+```bash
+python scripts/verify_onnx.py --config configs/config_train.yaml --pt models/best.pt --onnx models/road_damage_640.onnx --image data/rdd2022/images/val/Czech_000047.jpg
+```
+
+Verification result:
+
+| Check | Result |
+|---|---:|
+| ONNX Runtime session created | ✅ Yes |
+| PyTorch detections | 1 |
+| ONNX detections | 1 |
+| Class labels match | ✅ True |
+| Max confidence delta | 0.000000 |
+| Max box coordinate difference | 0.0000 px |
+
+This confirms that the ONNX export preserves the PyTorch model output for the tested image.
+
+Raw verification log:
+
+```text
+assets/evaluation/onnx_verification.txt
+```
+
+### Latency / Throughput Benchmark
+
+Inference speed was measured with `rdd-benchmark` on a fixed set of 10 validation images.
+
+Benchmark setup:
+
+| Item | Value |
+|---|---|
+| Images | 10 validation images |
+| Input size | 640×640 |
+| Confidence threshold | 0.25 |
+| IoU threshold | 0.45 |
+| Warmup runs | 10 |
+| Timed runs | 100 |
+| Image decoding | Excluded from timing |
+
+Hardware:
+
+| Component | Value |
+|---|---|
+| CPU | 13th Gen Intel(R) Core(TM) i7-13650HX |
+| GPU | NVIDIA GeForce RTX 5070 Laptop GPU |
+| RAM | 31.7 GB |
+| OS / Machine | Windows AMD64 |
+
+Benchmark results:
+
+| Backend | Device | Mean latency | p95 latency | FPS |
+|---|---|---:|---:|---:|
+| PyTorch | RTX 5070 Laptop GPU | 7.632 ms | 8.938 ms | 131.02 |
+| PyTorch | CPU | 59.187 ms | 69.414 ms | 16.90 |
+| ONNX Runtime | CPU | 21.466 ms | 22.870 ms | 46.59 |
+
+The ONNX Runtime CPU backend is approximately **2.76× faster** than PyTorch CPU on this benchmark:
+
+```text
+59.187 ms / 21.466 ms ≈ 2.76×
+```
+
+Raw benchmark files:
+
+```text
+assets/evaluation/benchmark_pt_gpu.json
+assets/evaluation/benchmark_pt_cpu.json
+assets/evaluation/benchmark_onnx_cpu.json
+```
+
+### Why This Matters
+
+For road damage detection, deployment speed matters because a real system may run on vehicle-mounted cameras, roadside devices, or embedded hardware.
+
+This benchmark shows three important points:
+
+- the PyTorch GPU version is fast enough for real-time inference on a strong NVIDIA GPU
+- PyTorch CPU inference is much slower
+- ONNX Runtime significantly improves CPU inference speed compared with PyTorch CPU
+
+This supports the edge-oriented direction of the project: a small YOLOv8n model, ONNX export, and measured latency instead of assumed performance.
 
 ## Why Edge AI Matters
 

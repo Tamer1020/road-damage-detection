@@ -1,0 +1,20 @@
+{
+  "backend": "PyTorch",
+  "weights": "models\\best.pt",
+  "device": "cpu",
+  "imgsz": 640,
+  "conf": 0.25,
+  "iou": 0.45,
+  "num_images": 10,
+  "warmup": 10,
+  "runs": 100,
+  "machine": "Windows AMD64",
+  "latency_ms": {
+    "mean": 59.187,
+    "median": 58.542,
+    "min": 53.14,
+    "max": 77.13,
+    "p95": 69.414
+  },
+  "fps_mean": 16.9
+}

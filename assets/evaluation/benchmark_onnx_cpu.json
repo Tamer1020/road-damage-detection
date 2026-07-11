@@ -1,0 +1,20 @@
+{
+  "backend": "ONNX Runtime",
+  "weights": "models\\road_damage_640.onnx",
+  "device": "cpu",
+  "imgsz": 640,
+  "conf": 0.25,
+  "iou": 0.45,
+  "num_images": 10,
+  "warmup": 10,
+  "runs": 100,
+  "machine": "Windows AMD64",
+  "latency_ms": {
+    "mean": 21.466,
+    "median": 21.188,
+    "min": 20.305,
+    "max": 23.502,
+    "p95": 22.87
+  },
+  "fps_mean": 46.59
+}

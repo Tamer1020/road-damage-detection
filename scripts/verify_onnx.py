@@ -89,12 +89,13 @@ def compare_predictions(
 
     labels_match = all(
         pytorch_detection.class_id == onnx_detection.class_id
-        for pytorch_detection, onnx_detection in zip(pytorch_sorted, onnx_sorted)
+        for pytorch_detection, onnx_detection in zip(pytorch_sorted, onnx_sorted, strict=True)
     )
 
     max_confidence_delta = max(
         abs(pytorch_detection.confidence - onnx_detection.confidence)
-        for pytorch_detection, onnx_detection in zip(pytorch_sorted, onnx_sorted)
+        for pytorch_detection, onnx_detection in zip(pytorch_sorted, onnx_sorted, strict=True)
+
     )
 
     max_box_delta = max(
@@ -106,7 +107,8 @@ def compare_predictions(
                 )
             )
         )
-        for pytorch_detection, onnx_detection in zip(pytorch_sorted, onnx_sorted)
+        for pytorch_detection, onnx_detection in zip(pytorch_sorted, onnx_sorted, strict=True)
+
     )
 
     print(f"Class labels match     : {labels_match}")
