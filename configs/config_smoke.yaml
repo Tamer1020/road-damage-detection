@@ -1,0 +1,40 @@
+# Central configuration. Every runtime knob lives here; the code never
+# hard-codes paths or hyperparameters.
+
+project:
+  name: road-damage-detection
+  seed: 42
+
+data:
+  root: data/rdd2022          # dataset root (images/ and labels/ live here)
+  yaml: data/rdd2022/data.yaml  # generated Ultralytics dataset descriptor
+  classes:                     # order defines the class IDs (0..N-1)
+    - D00                      # longitudinal crack
+    - D10                      # transverse crack
+    - D20                      # alligator crack
+    - D40                      # pothole
+
+model:
+  weights: yolov8n.pt          # base/pretrained weights to fine-tune from
+  checkpoint: models/best.pt   # trained weights used at inference time
+
+train:
+  epochs: 1
+  imgsz: 640
+  batch: 8
+  device: 0                    # GPU index; use "cpu" to force CPU
+  project: runs
+  name: rdd_exp
+  patience: 20
+  lr0: 0.01
+
+inference:
+  conf: 0.25                   # confidence threshold
+  iou: 0.45                    # NMS IoU threshold
+  imgsz: 640
+  device: cpu
+
+api:
+  host: 0.0.0.0
+  port: 8000
+  max_upload_mb: 10
