@@ -1,8 +1,12 @@
 # Road Damage Detection
 
-Detect and classify road surface damage such as cracks and potholes from street-level road images using a YOLO object detection model.
+> **Status:** 🚧 Actively developed. The full pipeline — data prep → training → evaluation → inference → FastAPI API → ONNX export → benchmarking — is implemented, tested, and runs end to end. Trained weights and measured results are the next milestone; no metrics are reported here until they are actually measured.
 
-This project is designed as a complete Computer Vision pipeline for road damage detection. It includes dataset preparation, Pascal VOC XML to YOLO conversion, YOLO training, evaluation, single-image inference, a FastAPI inference service, ONNX export, and FPS / latency benchmarking for Edge AI deployment.
+## Project Summary
+
+**Road Damage Detection** is an end-to-end computer-vision pipeline that detects and classifies road-surface damage — longitudinal, transverse, and alligator cracks, and potholes — from street-level images using **YOLOv8**.
+
+It covers the complete workflow: **RDD2022** dataset preparation (PASCAL VOC → YOLO conversion), configuration-driven **training** and **evaluation**, and **inference** via both a CLI and a **FastAPI** service. For deployment it adds **ONNX export** and an **FPS / latency benchmark**, making it a practical starting point for edge and real-time use.
 
 ## Project Overview
 
@@ -438,6 +442,26 @@ Expected result:
 9 passed
 ```
 
+## About This Project
+
+This is an actively developed portfolio project. The codebase is complete, unit-tested, and CI-checked; the next milestone is training on RDD2022 and publishing real evaluation metrics, benchmark numbers, and prediction samples. This README reports only measured results — never placeholder or estimated numbers.
+
+## Current Status
+
+| Component | Status |
+|---|---|
+| Dataset pipeline (VOC → YOLO conversion + train/val split) | ✅ Implemented |
+| Config-driven training (`rdd-train`) | ✅ Implemented |
+| Evaluation (`rdd-eval`, mAP@50 / mAP@50-95) | ✅ Implemented |
+| Inference — CLI (`rdd-infer`) | ✅ Implemented |
+| Inference — FastAPI API (`/health`, `/predict`) | ✅ Implemented |
+| ONNX export (`rdd-export-onnx`) | ✅ Implemented |
+| FPS / latency benchmark (`rdd-benchmark`) | ✅ Implemented |
+| Unit tests + CI | ✅ 9 tests passing (pytest + GitHub Actions) |
+| Docker image (non-root, healthcheck) | ✅ Implemented |
+| **Trained model weights** | ⏳ In progress |
+| **Measured results (mAP, FPS, sample predictions)** | ⏳ In progress |
+
 ## Project Results
 
 This section should be updated after training the model.
@@ -495,6 +519,17 @@ Possible future improvements:
 - Add a small demo video
 - Add experiment tracking
 - Deploy the API on a cloud or edge device
+
+## Roadmap / Next Steps
+
+- [ ] Train YOLOv8n on an RDD2022 country subset; commit the training config and logs
+- [ ] Add measured evaluation metrics (mAP@50, mAP@50-95) from `rdd-eval`
+- [ ] Add annotated sample prediction images for cracks and potholes
+- [ ] Add training curves and confusion matrix (`results.png`, `confusion_matrix.png`)
+- [ ] Add measured latency / FPS from `rdd-benchmark`, with the test device stated
+- [ ] Verify the exported ONNX model runs under ONNX Runtime and report its file size
+- [ ] Add a short demo GIF or video of the FastAPI `/predict` endpoint
+- [ ] Document the dataset subset, image counts, and class distribution
 
 ## License
 
