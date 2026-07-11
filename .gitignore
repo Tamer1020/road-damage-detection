@@ -35,3 +35,5 @@ htmlcov/
 .vscode/
 .DS_Store
 Thumbs.db
+*.pt
+*.onnx
