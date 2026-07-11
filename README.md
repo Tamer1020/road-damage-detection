@@ -1,12 +1,12 @@
 # Road Damage Detection
 
-> **Status:** 🚧 Actively developed. The full pipeline — data prep → training → evaluation → inference → FastAPI API → ONNX export → benchmarking — is implemented, tested, and runs end to end. Trained weights and measured results are the next milestone; no metrics are reported here until they are actually measured.
+> **Status:** ✅ Baseline completed. The full pipeline — data preparation → training → evaluation → inference → FastAPI API → ONNX export tooling → benchmarking tooling — is implemented and tested. A YOLOv8n baseline was trained for 100 epochs on the RDD2022 Czech subset, with measured validation metrics and prediction samples reported below.
 
 ## Project Summary
 
-**Road Damage Detection** is an end-to-end computer-vision pipeline that detects and classifies road-surface damage — longitudinal, transverse, and alligator cracks, and potholes — from street-level images using **YOLOv8**.
+**Road Damage Detection** is an end-to-end computer-vision pipeline that detects and classifies road-surface damage — longitudinal cracks, transverse cracks, alligator cracks, and potholes — from street-level images using **YOLOv8**.
 
-It covers the complete workflow: **RDD2022** dataset preparation (PASCAL VOC → YOLO conversion), configuration-driven **training** and **evaluation**, and **inference** via both a CLI and a **FastAPI** service. For deployment it adds **ONNX export** and an **FPS / latency benchmark**, making it a practical starting point for edge and real-time use.
+The project covers the complete workflow: **RDD2022** dataset preparation, Pascal VOC XML to YOLO TXT conversion, configuration-driven training and evaluation, CLI inference, FastAPI inference API, ONNX export tooling, and FPS / latency benchmarking tooling for edge-oriented deployment.
 
 ## Project Overview
 
@@ -23,18 +23,20 @@ The project focuses on four common road damage classes from the RDD2022 dataset:
 
 ## Features
 
-- YOLO-based road damage detection
+- YOLOv8-based road damage detection
 - RDD2022 dataset support
 - Pascal VOC XML to YOLO TXT annotation conversion
 - Automatic train / validation split
+- Dataset analysis and class-distribution reporting
+- Ground-truth label visualization
 - Config-driven training and inference
 - CLI tools for training, evaluation, and inference
 - FastAPI inference service
-- ONNX export for deployment
-- FPS / latency benchmark tool
+- ONNX export tooling
+- FPS / latency benchmark tooling
 - Unit tests with pytest
-- Docker support
 - GitHub Actions CI workflow
+- Docker support
 
 ## Repository Structure
 
@@ -43,8 +45,16 @@ road-damage-detection/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
+├── assets/
+│   ├── dataset_analysis/
+│   ├── evaluation/
+│   ├── ground_truth_samples/
+│   ├── predictions/
+│   └── training/
 ├── configs/
-│   └── config.yaml
+│   ├── config.yaml
+│   ├── config_smoke.yaml
+│   └── config_train.yaml
 ├── data/
 │   └── .gitkeep
 ├── models/
@@ -54,8 +64,11 @@ road-damage-detection/
 ├── outputs/
 │   └── .gitkeep
 ├── scripts/
+│   ├── analyze_dataset.py
 │   ├── download_data.py
-│   └── prepare_dataset.py
+│   ├── generate_prediction_samples.py
+│   ├── prepare_dataset.py
+│   └── visualize_yolo_labels.py
 ├── src/
 │   └── road_damage/
 │       ├── __init__.py
@@ -84,29 +97,32 @@ road-damage-detection/
 
 ## Dataset
 
-This project expects the RDD2022 dataset.
+This project uses the **RDD2022** road damage dataset.
 
-The raw dataset annotations are provided in Pascal VOC XML format. The script `scripts/prepare_dataset.py` converts these XML annotations into YOLO TXT format and creates a train / validation split.
+The original annotations are provided in Pascal VOC XML format. The script `scripts/prepare_dataset.py` converts these XML annotations into YOLO TXT labels and creates a train / validation split.
 
-Source repository:
+Dataset source repository:
 
 ```text
 https://github.com/sekilab/RoadDamageDetector
 ```
 
-Expected raw dataset example:
+For the first baseline, I used the **RDD2022 Czech subset**.
+
+Expected raw dataset layout before conversion:
 
 ```text
-data/raw/Japan/
-├── Annotations/
-│   ├── image_001.xml
-│   └── ...
-└── JPEGImages/
-    ├── image_001.jpg
+data/raw/Czech/
+├── annotations/
+│   └── xmls/
+│       ├── Czech_000001.xml
+│       └── ...
+└── images/
+    ├── Czech_000001.jpg
     └── ...
 ```
 
-Expected prepared dataset layout:
+Expected prepared dataset layout after conversion:
 
 ```text
 data/rdd2022/
@@ -119,7 +135,7 @@ data/rdd2022/
 └── data.yaml
 ```
 
-Large datasets, trained weights, and generated outputs are ignored by Git and should not be uploaded to the repository.
+Large datasets, training runs, model checkpoints, and generated outputs are ignored by Git and should not be committed directly.
 
 ## Setup
 
@@ -155,13 +171,37 @@ For development and testing:
 pip install -r requirements-dev.txt
 ```
 
-## Configuration
+## GPU Setup
 
-The project is controlled through:
+The baseline was trained locally with CUDA-enabled PyTorch on an NVIDIA GPU.
+
+Example CUDA check:
+
+```bash
+python -c "import torch; print(torch.__version__); print('CUDA available:', torch.cuda.is_available()); print('Torch CUDA:', torch.version.cuda); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU only')"
+```
+
+Baseline device used:
 
 ```text
-configs/config.yaml
+NVIDIA GeForce RTX 5070 Laptop GPU
 ```
+
+## Configuration
+
+The project is controlled through YAML configuration files in:
+
+```text
+configs/
+```
+
+Main configuration files:
+
+| File | Purpose |
+|---|---|
+| `configs/config.yaml` | Default project configuration |
+| `configs/config_smoke.yaml` | One-epoch smoke training configuration |
+| `configs/config_train.yaml` | Baseline training configuration |
 
 Important configuration sections:
 
@@ -182,26 +222,28 @@ inference:
   conf: 0.25
   iou: 0.45
   imgsz: 640
-  device: cpu
+  device: 0
 ```
 
 ## Data Preparation
 
 Convert RDD2022 Pascal VOC XML annotations to YOLO format:
 
+Windows:
+
 ```bash
 python scripts/prepare_dataset.py ^
-    --src data/raw/Japan ^
+    --src data/raw/Czech ^
     --dst data/rdd2022 ^
     --val-ratio 0.2 ^
     --seed 42
 ```
 
-Linux / macOS version:
+Linux / macOS:
 
 ```bash
 python scripts/prepare_dataset.py \
-    --src data/raw/Japan \
+    --src data/raw/Czech \
     --dst data/rdd2022 \
     --val-ratio 0.2 \
     --seed 42
@@ -216,21 +258,92 @@ data/rdd2022/labels/train
 data/rdd2022/labels/val
 ```
 
-The YOLO dataset descriptor `data.yaml` is generated automatically during training and evaluation.
+The YOLO dataset descriptor `data.yaml` is generated automatically by the project utilities.
+
+Generate or verify `data.yaml`:
+
+```bash
+python -c "from road_damage.config import Config; from road_damage.dataset import build_data_yaml; cfg=Config.load('configs/config.yaml'); print(build_data_yaml(cfg))"
+```
+
+## Dataset Analysis
+
+I prepared the **RDD2022 Czech subset** and converted the original Pascal VOC XML annotations into YOLO TXT labels.
+
+After conversion, the dataset contains:
+
+| Split | Images | Label files | Empty label files |
+|---|---:|---:|---:|
+| Train | 2264 | 2264 | 1403 |
+| Validation | 565 | 565 | 354 |
+
+Empty label files are valid in YOLO training. They represent road images where no target damage class is annotated, so the model also sees background / no-damage examples.
+
+### Object Count per Class
+
+| Class | Meaning | Count |
+|---|---|---:|
+| D00 | Longitudinal crack | 988 |
+| D10 | Transverse crack | 399 |
+| D20 | Alligator crack | 161 |
+| D40 | Pothole | 197 |
+
+The class distribution is imbalanced. Longitudinal cracks (**D00**) are the most common, while alligator cracks (**D20**) and potholes (**D40**) are much less frequent. This imbalance is important when interpreting per-class performance.
+
+The generated dataset summary is saved in:
+
+```text
+assets/dataset_analysis/dataset_summary.md
+```
+
+## Dataset Label Verification
+
+Before training, I verified the converted YOLO labels by drawing the ground-truth bounding boxes on real validation images from the RDD2022 Czech subset.
+
+This step confirms that the Pascal VOC XML to YOLO TXT conversion works correctly and that the bounding boxes align with visible road cracks and potholes.
+
+Example ground-truth visualization:
+
+![Ground truth sample 1](assets/ground_truth_samples/gt_Czech_000006.jpg)
+
+More samples are available in:
+
+```text
+assets/ground_truth_samples/
+```
 
 ## Training
 
-Train the model:
+Train using the default configuration:
 
 ```bash
 rdd-train --config configs/config.yaml
 ```
 
-Alternative:
+Run a one-epoch smoke test:
 
 ```bash
-python -m road_damage.train --config configs/config.yaml
+rdd-train --config configs/config_smoke.yaml
 ```
+
+Run the baseline training configuration:
+
+```bash
+rdd-train --config configs/config_train.yaml
+```
+
+Baseline training setup:
+
+| Item | Value |
+|---|---|
+| Model | YOLOv8n |
+| Dataset | RDD2022 Czech subset |
+| Train images | 2264 |
+| Validation images | 565 |
+| Epochs | 100 |
+| Image size | 640 |
+| Batch size | 8 |
+| Device | NVIDIA GeForce RTX 5070 Laptop GPU |
 
 Training outputs are saved under:
 
@@ -238,38 +351,88 @@ Training outputs are saved under:
 runs/
 ```
 
-After training, copy the best weights to:
+After training, the best checkpoint is copied locally to:
 
 ```text
 models/best.pt
 ```
 
-The inference tools use the checkpoint path defined in:
-
-```yaml
-model:
-  checkpoint: models/best.pt
-```
+The model checkpoint itself is not committed directly to the repository. A GitHub Release is planned for distributing the trained checkpoint.
 
 ## Evaluation
 
 Evaluate the trained model on the validation split:
 
 ```bash
-rdd-eval --config configs/config.yaml --split val
+rdd-eval --config configs/config_train.yaml --split val
 ```
 
-The evaluation reports YOLO metrics such as:
+Raw evaluation output is stored in:
 
-- mAP@50
-- mAP@50-95
+```text
+assets/evaluation/eval_output.txt
+```
+
+## Baseline Training Results
+
+I trained a **YOLOv8n** baseline on the **RDD2022 Czech subset** for **100 epochs** on a local NVIDIA GPU.
+
+These are measured results from the actual validation run.
+
+### Validation Metrics
+
+| Metric | Value |
+|---|---:|
+| Precision | 0.315 |
+| Recall | 0.340 |
+| mAP@50 | 0.245 |
+| mAP@50-95 | 0.0954 |
+
+### Per-Class Metrics
+
+| Class | Description | Precision | Recall | mAP@50 | mAP@50-95 |
+|---|---|---:|---:|---:|---:|
+| D00 | Longitudinal crack | 0.408 | 0.456 | 0.417 | 0.171 |
+| D10 | Transverse crack | 0.415 | 0.296 | 0.248 | 0.0759 |
+| D20 | Alligator crack | 0.208 | 0.448 | 0.238 | 0.104 |
+| D40 | Pothole | 0.231 | 0.162 | 0.0752 | 0.0303 |
+
+These are first baseline results from a YOLOv8n model trained on the RDD2022 Czech subset. The results are reported as measured, without artificial tuning or fake metrics.
+
+## Training Artifacts
+
+Training curves, confusion matrices, and training logs are stored in:
+
+```text
+assets/training/
+```
+
+Main artifacts:
+
+- `results.png`
+- `results.csv`
+- `confusion_matrix.png`
+- `confusion_matrix_normalized.png`
+- `BoxPR_curve.png`
+- `BoxP_curve.png`
+- `BoxR_curve.png`
+- `BoxF1_curve.png`
+- `args.yaml`
+
+Training curves:
+
+![Training curves](assets/training/results.png)
+
+Confusion matrix:
+
+![Confusion matrix](assets/training/confusion_matrix.png)
 
 ## Inference CLI
 
 Run inference on one image:
 
 ```bash
-rdd-infer --config configs/config.yaml --image path/to/street.jpg --save
+rdd-infer --config configs/config_train.yaml --image path/to/street.jpg --save
 ```
 
 The command prints detections as JSON and optionally saves an annotated image to:
@@ -289,6 +452,28 @@ Example output format:
     "bbox": [120.5, 85.0, 310.2, 160.8]
   }
 ]
+```
+
+## Sample Predictions
+
+Sample predictions were generated on validation images from the RDD2022 Czech subset using the trained YOLOv8n baseline.
+
+![Prediction sample 1](assets/predictions/pred_Czech_000047.jpg)
+
+![Prediction sample 2](assets/predictions/pred_Czech_000113.jpg)
+
+![Prediction sample 3](assets/predictions/pred_Czech_000157.jpg)
+
+More prediction samples are available in:
+
+```text
+assets/predictions/
+```
+
+Prediction summary:
+
+```text
+assets/predictions/prediction_summary.md
 ```
 
 ## Inference API
@@ -336,19 +521,19 @@ Use `annotate=true` to return a base64 encoded annotated image.
 After training, export the trained YOLO checkpoint to ONNX:
 
 ```bash
-rdd-export-onnx --config configs/config.yaml
+rdd-export-onnx --config configs/config_train.yaml
 ```
 
 Custom output path:
 
 ```bash
-rdd-export-onnx --output models/road_damage.onnx --imgsz 640
+rdd-export-onnx --config configs/config_train.yaml --output models/road_damage.onnx --imgsz 640
 ```
 
 Export with a fixed ONNX opset and dynamic input axes:
 
 ```bash
-rdd-export-onnx --opset 12 --dynamic
+rdd-export-onnx --config configs/config_train.yaml --opset 12 --dynamic
 ```
 
 ONNX is useful because it allows the trained model to run outside the PyTorch training environment, for example with ONNX Runtime, TensorRT, or OpenVINO.
@@ -360,13 +545,13 @@ This is important for Edge AI because deployment devices often need smaller and 
 Measure inference speed on one image:
 
 ```bash
-rdd-benchmark --image samples/street.jpg
+rdd-benchmark --config configs/config_train.yaml --image path/to/street.jpg
 ```
 
 Measure inference speed on a folder of images:
 
 ```bash
-rdd-benchmark --folder samples/ --warmup 10 --runs 200 --save-json
+rdd-benchmark --config configs/config_train.yaml --folder assets/predictions --warmup 10 --runs 100 --save-json
 ```
 
 The benchmark reports:
@@ -382,16 +567,16 @@ Example output shape:
 
 ```text
 === Benchmark summary ===
-Device        : cpu
+Device        : 0
 Image size    : 640
-Images        : 1
-Warmup / Runs : 5 / 50
+Images        : 8
+Warmup / Runs : 10 / 100
 Latency (ms)  : mean <ms> | median <ms> | min <ms> | max <ms> | p95 <ms>
 Throughput    : <fps> FPS
 =========================
 ```
 
-No fake benchmark numbers are included in this repository. The benchmark values depend on the trained model, input resolution, and hardware.
+Measured FPS / latency results are planned as the next step.
 
 ## Why Edge AI Matters
 
@@ -403,7 +588,7 @@ For road damage detection, accuracy is not the only important factor. A model ma
 - embedded GPU platforms
 - CPU-only gateways
 
-That is why this project includes ONNX export and FPS benchmarking. These tools make it possible to compare model speed, latency, and deployment readiness.
+That is why this project includes ONNX export and FPS benchmarking tools. These tools make it possible to compare model speed, latency, and deployment readiness.
 
 ## Docker
 
@@ -429,6 +614,12 @@ Run the test suite:
 pytest -q
 ```
 
+Run linting:
+
+```bash
+ruff check src tests scripts
+```
+
 Current test coverage includes:
 
 - config loading
@@ -442,83 +633,32 @@ Expected result:
 9 passed
 ```
 
-## About This Project
-
-This is an actively developed portfolio project. The codebase is complete, unit-tested, and CI-checked; the next milestone is training on RDD2022 and publishing real evaluation metrics, benchmark numbers, and prediction samples. This README reports only measured results — never placeholder or estimated numbers.
-
 ## Current Status
 
 | Component | Status |
 |---|---|
 | Dataset pipeline (VOC → YOLO conversion + train/val split) | ✅ Implemented |
+| Dataset analysis | ✅ Completed |
+| Ground-truth label visualization | ✅ Completed |
 | Config-driven training (`rdd-train`) | ✅ Implemented |
-| Evaluation (`rdd-eval`, mAP@50 / mAP@50-95) | ✅ Implemented |
+| YOLOv8n baseline training | ✅ Completed |
+| Evaluation (`rdd-eval`, mAP@50 / mAP@50-95) | ✅ Completed |
+| Sample prediction generation | ✅ Completed |
 | Inference — CLI (`rdd-infer`) | ✅ Implemented |
 | Inference — FastAPI API (`/health`, `/predict`) | ✅ Implemented |
 | ONNX export (`rdd-export-onnx`) | ✅ Implemented |
-| FPS / latency benchmark (`rdd-benchmark`) | ✅ Implemented |
-| Unit tests + CI | ✅ 9 tests passing (pytest + GitHub Actions) |
+| FPS / latency benchmark tool (`rdd-benchmark`) | ✅ Implemented |
+| Unit tests + CI | ✅ 9 tests passing |
 | Docker image (non-root, healthcheck) | ✅ Implemented |
-| **Trained model weights** | ⏳ In progress |
-| **Measured results (mAP, FPS, sample predictions)** | ⏳ In progress |
+| ONNX Runtime verification | ⏳ Next step |
+| Measured FPS / latency benchmark | ⏳ Next step |
+| GitHub Release for trained checkpoint | ⏳ Next step |
 
-## Dataset Analysis
+## Discussion
 
-I prepared the **RDD2022 Czech subset** and converted the original Pascal VOC XML annotations into YOLO TXT labels.
+The first baseline shows that the model learns the most frequent damage class (**D00**) better than the rarer classes. This is expected because the Czech subset is imbalanced: D00 has many more annotations than D20 and D40.
 
-After conversion, the dataset contains:
-
-| Split | Images | Label files | Empty label files |
-|---|---:|---:|---:|
-| Train | 2264 | 2264 | 1403 |
-| Validation | 565 | 565 | 354 |
-
-Empty label files are valid in YOLO training. They represent road images where no target damage class is annotated, so the model also sees background / no-damage examples.
-
-### Object Count per Class
-
-| Class | Meaning | Count |
-|---|---|---:|
-| D00 | Longitudinal crack | 988 |
-| D10 | Transverse crack | 399 |
-| D20 | Alligator crack | 161 |
-| D40 | Pothole | 197 |
-
-The class distribution is imbalanced. Longitudinal cracks (**D00**) are the most common, while alligator cracks (**D20**) and potholes (**D40**) are much less frequent. This imbalance is important to consider when interpreting training results and per-class performance.
-
-The generated dataset summary is saved in:
-
-```text
-assets/dataset_analysis/dataset_summary.md
-
-## Dataset Label Verification
-
-Before training, I verified the converted YOLO labels by drawing the ground-truth bounding boxes on real validation images from the RDD2022 Czech subset.
-
-This step confirms that the Pascal VOC XML to YOLO TXT conversion works correctly and that the bounding boxes align with visible road cracks and potholes.
-
-Example ground-truth visualizations:
-
-![Ground truth sample 1](assets/ground_truth_samples/gt_Czech_000006.jpg)
-
-More samples are available in:
-
-```text
-assets/ground_truth_samples/
-
-## Project Results
-
-This section should be updated after training the model.
-
-Planned results to include:
-
-- example prediction images
-- validation metrics
-- inference speed
-- ONNX export result
-- benchmark JSON output
-
-No fake results are reported before actual training and testing.
+The pothole class (**D40**) has the weakest performance in this baseline. A likely reason is the low number of pothole annotations compared with longitudinal cracks. Future improvements should focus on more training data, comparing YOLOv8n with YOLOv8s, stronger augmentation, and checking per-class failure cases visually.
 
 ## What I Learned
 
@@ -542,38 +682,29 @@ This project demonstrates practical experience with:
 
 Current limitations:
 
-- The model must be trained before real inference can be performed.
+- The first trained model is a baseline, not an optimized final model.
 - The repository does not include the full RDD2022 dataset because it is too large.
+- The class distribution is imbalanced, especially for D20 and D40.
 - Benchmark results depend strongly on the hardware.
 - The first version focuses on bounding-box detection only.
-- No INT8 quantization is implemented yet.
-- No TensorRT deployment is included yet.
-
-## Next Steps
-
-Possible future improvements:
-
-- Train on multiple RDD2022 country subsets
-- Compare YOLOv8n, YOLOv8s, and YOLOv8m
-- Add TensorRT export
-- Add ONNX Runtime inference
-- Add INT8 quantization
-- Add confusion matrix visualization
-- Add example prediction images to the README
-- Add a small demo video
-- Add experiment tracking
-- Deploy the API on a cloud or edge device
+- ONNX Runtime verification is still planned.
+- INT8 quantization and TensorRT deployment are not implemented yet.
 
 ## Roadmap / Next Steps
 
-- [ ] Train YOLOv8n on an RDD2022 country subset; commit the training config and logs
-- [ ] Add measured evaluation metrics (mAP@50, mAP@50-95) from `rdd-eval`
-- [ ] Add annotated sample prediction images for cracks and potholes
-- [ ] Add training curves and confusion matrix (`results.png`, `confusion_matrix.png`)
+- [x] Prepare RDD2022 Czech subset
+- [x] Convert Pascal VOC XML annotations to YOLO labels
+- [x] Verify ground-truth labels visually
+- [x] Analyze dataset image counts and class distribution
+- [x] Train YOLOv8n baseline for 100 epochs
+- [x] Add measured evaluation metrics
+- [x] Add sample prediction images
+- [x] Add training curves and confusion matrix
+- [ ] Export trained model to ONNX and verify it with ONNX Runtime
 - [ ] Add measured latency / FPS from `rdd-benchmark`, with the test device stated
-- [ ] Verify the exported ONNX model runs under ONNX Runtime and report its file size
 - [ ] Add a short demo GIF or video of the FastAPI `/predict` endpoint
-- [ ] Document the dataset subset, image counts, and class distribution
+- [ ] Compare YOLOv8n with YOLOv8s
+- [ ] Investigate class imbalance and per-class failure cases
 
 ## License
 
