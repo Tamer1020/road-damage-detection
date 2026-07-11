@@ -1,0 +1,40 @@
+
+--- ONNX Runtime session ---
+File      : models\road_damage_640.onnx
+Size      : 11.70 MB
+Providers : ['CPUExecutionProvider']
+Input     : images | shape=[1, 3, 640, 640] | dtype=tensor(float)
+Output    : output0 | shape=[1, 8, 8400] | dtype=tensor(float)
+ONNX Runtime session created successfully.
+WARNING Unable to automatically guess model task, assuming 'task=detect'. Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'.
+Loading models\road_damage_640.onnx for ONNX Runtime inference...
+[31m[1mrequirements:[0m Ultralytics requirement ['onnxruntime-gpu'] not found, attempting AutoUpdate...
+WARNING Retry 1/2 failed: Command '"C:\rdd\road-damage-detection\.venv\Scripts\python.exe" -m pip install --no-cache-dir "onnxruntime-gpu" ' returned non-zero exit status 1.
+WARNING Retry 2/2 failed: Command '"C:\rdd\road-damage-detection\.venv\Scripts\python.exe" -m pip install --no-cache-dir "onnxruntime-gpu" ' returned non-zero exit status 1.
+WARNING [31m[1mrequirements:[0m  Command '"C:\rdd\road-damage-detection\.venv\Scripts\python.exe" -m pip install --no-cache-dir "onnxruntime-gpu" ' returned non-zero exit status 1.
+Collecting onnxruntime-gpu
+  Downloading onnxruntime_gpu-1.27.0-cp312-cp312-win_amd64.whl.metadata (6.0 kB)
+Requirement already satisfied: flatbuffers in C:\rdd\road-damage-detection\.venv\Lib\site-packages (from onnxruntime-gpu) (25.12.19)
+Requirement already satisfied: numpy>=1.21.6 in C:\rdd\road-damage-detection\.venv\Lib\site-packages (from onnxruntime-gpu) (2.5.1)
+Requirement already satisfied: packaging in C:\rdd\road-damage-detection\.venv\Lib\site-packages (from onnxruntime-gpu) (26.2)
+Requirement already satisfied: protobuf>=4.25.8 in C:\rdd\road-damage-detection\.venv\Lib\site-packages (from onnxruntime-gpu) (7.35.1)
+Downloading onnxruntime_gpu-1.27.0-cp312-cp312-win_amd64.whl (213.6 MB)
+   ---------------------------------------- 213.6/213.6 MB 41.6 MB/s  0:00:05
+Installing collected packages: onnxruntime-gpu
+ERROR: Could not install packages due to an OSError: [WinError 5] Zugriff verweigert: 'C:\\rdd\\road-damage-detection\\.venv\\Lib\\site-packages\\onnxruntime\\capi\\onnxruntime_providers_shared.dll'
+Check the permissions.
+
+
+WARNING CUDA requested but CUDAExecutionProvider not available. Using CPU...
+Using ONNX Runtime 1.27.0 with CPUExecutionProvider
+Loading models\road_damage_640.onnx for ONNX Runtime inference...
+Using ONNX Runtime 1.27.0 with CPUExecutionProvider
+
+--- PyTorch vs ONNX Runtime ---
+Image              : data\rdd2022\images\val\Czech_000047.jpg
+PyTorch detections : 1
+ONNX detections    : 1
+Class labels match     : True
+Max confidence delta   : 0.000000
+Max box coordinate diff: 0.0000 px
+ONNX verification completed.
