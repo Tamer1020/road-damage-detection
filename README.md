@@ -462,6 +462,35 @@ This is an actively developed portfolio project. The codebase is complete, unit-
 | **Trained model weights** | ⏳ In progress |
 | **Measured results (mAP, FPS, sample predictions)** | ⏳ In progress |
 
+## Dataset Analysis
+
+I prepared the **RDD2022 Czech subset** and converted the original Pascal VOC XML annotations into YOLO TXT labels.
+
+After conversion, the dataset contains:
+
+| Split | Images | Label files | Empty label files |
+|---|---:|---:|---:|
+| Train | 2264 | 2264 | 1403 |
+| Validation | 565 | 565 | 354 |
+
+Empty label files are valid in YOLO training. They represent road images where no target damage class is annotated, so the model also sees background / no-damage examples.
+
+### Object Count per Class
+
+| Class | Meaning | Count |
+|---|---|---:|
+| D00 | Longitudinal crack | 988 |
+| D10 | Transverse crack | 399 |
+| D20 | Alligator crack | 161 |
+| D40 | Pothole | 197 |
+
+The class distribution is imbalanced. Longitudinal cracks (**D00**) are the most common, while alligator cracks (**D20**) and potholes (**D40**) are much less frequent. This imbalance is important to consider when interpreting training results and per-class performance.
+
+The generated dataset summary is saved in:
+
+```text
+assets/dataset_analysis/dataset_summary.md
+
 ## Dataset Label Verification
 
 Before training, I verified the converted YOLO labels by drawing the ground-truth bounding boxes on real validation images from the RDD2022 Czech subset.
