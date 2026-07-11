@@ -462,6 +462,21 @@ This is an actively developed portfolio project. The codebase is complete, unit-
 | **Trained model weights** | ⏳ In progress |
 | **Measured results (mAP, FPS, sample predictions)** | ⏳ In progress |
 
+## Dataset Label Verification
+
+Before training, I verified the converted YOLO labels by drawing the ground-truth bounding boxes on real validation images from the RDD2022 Czech subset.
+
+This step confirms that the Pascal VOC XML to YOLO TXT conversion works correctly and that the bounding boxes align with visible road cracks and potholes.
+
+Example ground-truth visualizations:
+
+![Ground truth sample 1](assets/ground_truth_samples/gt_Czech_000006.jpg)
+
+More samples are available in:
+
+```text
+assets/ground_truth_samples/
+
 ## Project Results
 
 This section should be updated after training the model.
