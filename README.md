@@ -372,6 +372,28 @@ Raw evaluation output is stored in:
 ```text
 assets/evaluation/eval_output.txt
 ```
+## Model Release
+
+The trained YOLOv8n PyTorch checkpoint and the exported ONNX model are available in the GitHub Release below.
+
+Release:
+
+```text
+v0.1.0 — YOLOv8n baseline (RDD2022 Czech)
+```
+
+Download files:
+
+- `best.pt` — trained YOLOv8n PyTorch checkpoint
+- `road_damage_640.onnx` — exported ONNX model with static 640×640 input size
+
+Release page:
+
+```text
+https://github.com/Tamer1020/road-damage-detection/releases/tag/v0.1.0
+```
+
+The model files are not committed directly to Git because binary model weights are ignored by `.gitignore`.
 
 ## Baseline Training Results
 
