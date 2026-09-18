@@ -1,6 +1,6 @@
 # Road Damage Detection
 
-> **Status:** ✅ Baseline completed. The full pipeline — data preparation → training → evaluation → inference → FastAPI API → ONNX export tooling → benchmarking tooling — is implemented and tested. A YOLOv8n baseline was trained for 100 epochs on the RDD2022 Czech subset, with measured validation metrics and prediction samples reported below.
+> **Status:** ✅ Baseline completed. The full pipeline — data preparation → training → evaluation → inference → FastAPI API → ONNX export and verification → latency/FPS benchmarking — is implemented and tested. A YOLOv8n baseline was trained for 100 epochs on the RDD2022 Czech subset, with measured validation metrics and prediction samples reported below.
 
 ## Project Summary
 
@@ -357,7 +357,7 @@ After training, the best checkpoint is copied locally to:
 models/best.pt
 ```
 
-The model checkpoint itself is not committed directly to the repository. A GitHub Release is planned for distributing the trained checkpoint.
+The model checkpoint is distributed through the repository's `v0.1.0` GitHub Release rather than committed directly to Git.
 
 ## Evaluation
 
@@ -550,7 +550,7 @@ The exported ONNX model is stored locally as:
 models/road_damage_640.onnx
 ```
 
-The ONNX model file is not committed directly to Git because model binaries are ignored. It is intended to be published through a GitHub Release.
+The ONNX model file is not committed directly to Git because model binaries are ignored. The exported model is available in the repository's `v0.1.0` GitHub Release.
 
 ### ONNX Export
 
@@ -730,9 +730,9 @@ Expected result:
 | FPS / latency benchmark tool (`rdd-benchmark`) | ✅ Implemented |
 | Unit tests + CI | ✅ 9 tests passing |
 | Docker image (non-root, healthcheck) | ✅ Implemented |
-| ONNX Runtime verification | ⏳ Next step |
-| Measured FPS / latency benchmark | ⏳ Next step |
-| GitHub Release for trained checkpoint | ⏳ Next step |
+| ONNX Runtime verification | ✅ Completed |
+| Measured FPS / latency benchmark | ✅ Completed |
+| GitHub Release for trained checkpoint and ONNX model | ✅ Published (`v0.1.0`) |
 
 ## Discussion
 
@@ -767,7 +767,6 @@ Current limitations:
 - The class distribution is imbalanced, especially for D20 and D40.
 - Benchmark results depend strongly on the hardware.
 - The first version focuses on bounding-box detection only.
-- ONNX Runtime verification is still planned.
 - INT8 quantization and TensorRT deployment are not implemented yet.
 
 ## Roadmap / Next Steps
@@ -780,8 +779,8 @@ Current limitations:
 - [x] Add measured evaluation metrics
 - [x] Add sample prediction images
 - [x] Add training curves and confusion matrix
-- [ ] Export trained model to ONNX and verify it with ONNX Runtime
-- [ ] Add measured latency / FPS from `rdd-benchmark`, with the test device stated
+- [x] Export trained model to ONNX and verify it with ONNX Runtime
+- [x] Add measured latency / FPS from `rdd-benchmark`, with the test device stated
 - [ ] Add a short demo GIF or video of the FastAPI `/predict` endpoint
 - [ ] Compare YOLOv8n with YOLOv8s
 - [ ] Investigate class imbalance and per-class failure cases
