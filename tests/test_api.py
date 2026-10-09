@@ -35,6 +35,15 @@ def test_health_is_liveness_and_readiness_detects_missing_weights():
     assert client.post("/predict", files=upload()).status_code == 503
 
 
+def test_readiness_rejects_a_model_that_cannot_run():
+    class Broken:
+        def predict_image(self, *args, **kwargs):
+            raise RuntimeError("Invalid backend")
+    client = TestClient(create_app(Config(), lambda _: Broken()))
+    assert client.get("/health").status_code == 200
+    assert client.get("/ready").status_code == 503
+
+
 def test_ready_loads_once_and_predict_returns_contract():
     loads = []
     def factory(config):
@@ -60,6 +69,17 @@ def test_no_detection_is_a_valid_empty_response():
     payload = client.post("/predict", files=upload()).json()
     assert payload["count"] == 0 and payload["detections"] == []
     assert "annotated_image_b64" not in payload
+
+
+def test_upload_validation_is_independent_of_framework_image_open_patch(monkeypatch):
+    import PIL.Image
+    def patched(*args, **kwargs):
+        raise ModuleNotFoundError("optional image plugin")
+    monkeypatch.setattr(PIL.Image, "open", patched)
+    client = TestClient(create_app(Config(), lambda _: Predictor()))
+    assert client.get("/ready").status_code == 200
+    assert client.post("/predict", files=upload()).status_code == 200
+    assert client.post("/predict", files=upload(b"bad image")).status_code == 400
 
 
 @pytest.mark.parametrize("body,kind,status", [(b"", "image/png", 400),

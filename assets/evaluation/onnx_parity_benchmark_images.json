@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "scope": "post-NMS detection parity; not an accuracy evaluation",
+  "summary": {
+    "passed": true,
+    "images": 10,
+    "failed_images": 0,
+    "nonempty_reference_images": 1,
+    "required_nonempty_images": 1,
+    "status": "passed"
+  },
+  "tolerances": {
+    "min_iou": 0.99,
+    "max_confidence_delta": 0.0001,
+    "max_box_delta_px": 0.1
+  },
+  "inference": {
+    "conf": 0.25,
+    "iou": 0.45,
+    "imgsz": 640,
+    "rect": false,
+    "device": "cpu"
+  },
+  "models": {
+    "pytorch": {
+      "file": "best.pt",
+      "sha256": "12f65922fe28fbc963ba3bafb95390d850e96ca8fd99058f40f4ce00e54feddb"
+    },
+    "onnx": {
+      "file": "road_damage_640.onnx",
+      "sha256": "d898d2d4860ab44949276d50f01610f350244d378042659072b4110cd9d677da"
+    }
+  },
+  "onnx": {
+    "inputs": [
+      {
+        "name": "images",
+        "shape": [
+          1,
+          3,
+          640,
+          640
+        ],
+        "dtype": "tensor(float)"
+      }
+    ],
+    "providers": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "environment": {
+    "python": "3.12.14",
+    "system": "Linux",
+    "packages": {
+      "ultralytics": "8.4.91",
+      "torch": "2.11.0+cpu",
+      "torchvision": "0.26.0+cpu",
+      "onnxruntime": "1.27.0",
+      "numpy": "2.5.2"
+    }
+  },
+  "images": [
+    {
+      "image": "Czech_000000.jpg",
+      "sha256": "62fbb8ae2ef07e945d7c71b42fe01e5e3965ef74097e470f3b83cf9e086a1cbb",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000006.jpg",
+      "sha256": "9f4dda8098647d5c856d4652ee1bf15f25de8c6cb202aef4b16a8b412c15f55f",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000007.jpg",
+      "sha256": "d4571a41c49a48108e2fb66d7f73f8a124a64c04975fa0a6c15e58abc3d69cdd",
+      "reference_count": 1,
+      "candidate_count": 1,
+      "passed": true,
+      "matches": [
+        {
+          "reference_index": 0,
+          "candidate_index": 0,
+          "iou": 0.9999992420297533,
+          "confidence_delta": 7.152557373046875e-07,
+          "box_delta_px": 6.103515625e-05
+        }
+      ],
+      "reason": "matched"
+    },
+    {
+      "image": "Czech_000011.jpg",
+      "sha256": "22a0d674b75e50a2c9b89ae8f641bad0a764e80778c0d9cd7574878418c9114a",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000013.jpg",
+      "sha256": "4d9d241098f9ad824b9ad9dac888fd4f0272c0a7129b2e8095cc1131a00e407c",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000014.jpg",
+      "sha256": "e60ff9e94068e5fa14d34e5e92e9a97b132045936e4df9d6af5ef51b0f0912f4",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000015.jpg",
+      "sha256": "cc52c30a270381090dc8e74f43b017bed387e78e59b1b53089ad2d8b34f721f3",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000024.jpg",
+      "sha256": "aa801ab25ccfcd0de5121dc8478b6785bb22515e2e3e8bdc26bc3aba8e2b7d1b",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000025.jpg",
+      "sha256": "fe36c2127ddabd337ef631b5c367a703b13fd0293668d1f772be33a9b2005862",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    },
+    {
+      "image": "Czech_000030.jpg",
+      "sha256": "c3572a603ea0dcc2fef27ed2d679a024e343e5785fca0896c265735044ee1633",
+      "reference_count": 0,
+      "candidate_count": 0,
+      "passed": true,
+      "matches": [],
+      "reason": "both_empty"
+    }
+  ]
+}

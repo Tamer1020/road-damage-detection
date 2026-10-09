@@ -9,9 +9,12 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated
 
+import numpy as np
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 from PIL import Image, UnidentifiedImageError
+from PIL.JpegImagePlugin import JpegImageFile
+from PIL.PngImagePlugin import PngImageFile
 
 from .config import Config
 from .utils.io import decode_image, to_base64
@@ -36,7 +39,13 @@ def create_app(config: Config, model_factory: Callable = _load_model) -> FastAPI
         nonlocal model
         if model is None:
             try:
-                model = model_factory(config)
+                candidate = model_factory(config)
+                candidate.predict_image(
+                    np.zeros((64, 64, 3), dtype=np.uint8),
+                    conf=config.inference.conf, iou=config.inference.iou,
+                    imgsz=config.inference.imgsz,
+                )
+                model = candidate
             except Exception as exc:
                 logger.exception("Model initialization failed")
                 raise HTTPException(
@@ -77,7 +86,15 @@ def create_app(config: Config, model_factory: Callable = _load_model) -> FastAPI
             raise HTTPException(400, "Image data is empty.")
         try:
             # Check dimensions before allocating a decoded pixel buffer.
-            with Image.open(io.BytesIO(raw)) as header:
+            # Use explicit JPEG/PNG decoders: ML libraries may monkey-patch
+            # Image.open to install optional format plugins on invalid input.
+            if raw.startswith(b"\x89PNG\r\n\x1a\n"):
+                header = PngImageFile(io.BytesIO(raw))
+            elif raw.startswith(b"\xff\xd8"):
+                header = JpegImageFile(io.BytesIO(raw))
+            else:
+                raise ValueError("Not a JPEG or PNG image")
+            with header:
                 if header.width * header.height > config.api.max_image_pixels:
                     raise HTTPException(413, "Image dimensions exceed the pixel limit.")
                 if header.format not in {"JPEG", "PNG"}:
@@ -85,7 +102,7 @@ def create_app(config: Config, model_factory: Callable = _load_model) -> FastAPI
             image = decode_image(raw)
         except Image.DecompressionBombError as exc:
             raise HTTPException(413, "Image dimensions exceed the pixel limit.") from exc
-        except (UnidentifiedImageError, OSError, ValueError) as exc:
+        except (UnidentifiedImageError, OSError, ValueError, SyntaxError) as exc:
             raise HTTPException(400, "Invalid or unsupported image data.") from exc
 
         # The shared Ultralytics predictor is serialized, including lazy loading.

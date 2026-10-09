@@ -18,7 +18,7 @@ class RoadDamageModel:
     def __init__(self, weights: str | Path, device: int | str = "cpu") -> None:
         if not Path(weights).is_file():
             raise FileNotFoundError(f"Checkpoint not found: {weights}. Download the release first.")
-        self.model = YOLO(str(weights))
+        self.model = YOLO(str(weights), task="detect")
         self.device = device
         # Read names after prediction: accessing YOLO.names earlier can initialize
         # an ONNX backend before the requested device has been applied.

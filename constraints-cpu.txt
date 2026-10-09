@@ -1,0 +1,20 @@
+# Tested Linux / Python 3.12 CPU constraints for demo and parity checks.
+# Install CPU torch/torchvision from the PyTorch CPU index first.
+# These are current verification versions, not the historical Windows training environment.
+fastapi==0.143.0
+matplotlib==3.11.2
+numpy==2.5.2
+onnx==1.23.2
+onnxruntime==1.27.0
+opencv-python==5.0.0.93
+opencv-python-headless==5.0.0.93
+pillow==12.3.0
+pydantic==2.14.0
+python-multipart==0.0.32
+PyYAML==6.0.3
+requests==2.34.2
+starlette==1.7.0
+torch==2.11.0+cpu
+torchvision==0.26.0+cpu
+ultralytics==8.4.91
+uvicorn==0.54.0

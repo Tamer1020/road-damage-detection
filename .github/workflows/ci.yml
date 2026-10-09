@@ -31,3 +31,34 @@ jobs:
 
       - name: Test
         run: pytest -q
+
+  integration:
+    runs-on: ubuntu-latest
+    env:
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            pyproject.toml
+            constraints-cpu.txt
+      - name: Install CPU runtime
+        run: |
+          python -m pip install --upgrade pip
+          pip install torch==2.11.0 torchvision==0.26.0 --index-url https://download.pytorch.org/whl/cpu
+          pip install -e . -c constraints-cpu.txt
+      - name: Download and verify published weights
+        run: python scripts/download_models.py
+      - name: Verify real PyTorch and ONNX predictions
+        run: rdd-verify-onnx --pt models/best.pt --onnx models/road_damage_640.onnx --folder assets/demo/inputs --min-nonempty 2 --output outputs/ci_parity.json
+      - name: Exercise real HTTP inference and invalid upload handling
+        run: python scripts/capture_demo.py --output outputs/ci_capture
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cpu-integration-evidence
+          path: outputs/
