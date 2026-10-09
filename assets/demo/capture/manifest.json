@@ -1,0 +1,60 @@
+{
+  "recorded_at_utc": "2026-10-09T23:13:10.110389+00:00",
+  "capture": "actual HTTP requests to a local uvicorn/FastAPI process",
+  "video": "replay of captured responses, edited chapter timing; not a speed benchmark",
+  "ready_response": {
+    "status": "ready",
+    "checkpoint": "best.pt",
+    "device": "cpu"
+  },
+  "cases": [
+    {
+      "name": "crack",
+      "input": "assets/demo/inputs/Czech_000047.jpg",
+      "input_sha256": "75b16ecf806f44043a0627d1329751a6d5756948aa9c79fe8e722ce802229938",
+      "http_status": 200,
+      "response": "crack.json",
+      "annotation": "crack.jpg",
+      "annotation_sha256": "c806110c52168959d1bd9f8eb4da04993d7eb6fd962db851e83ce285588e5678"
+    },
+    {
+      "name": "missed_damage",
+      "input": "assets/bench_images/Czech_000006.jpg",
+      "input_sha256": "9f4dda8098647d5c856d4652ee1bf15f25de8c6cb202aef4b16a8b412c15f55f",
+      "http_status": 200,
+      "response": "missed_damage.json",
+      "annotation": "missed_damage.jpg",
+      "annotation_sha256": "c8ffc2c1e37d978c5d861433778ead1adf74eb21b8f4eb228330efb6143fb1fc"
+    },
+    {
+      "name": "class_confusion",
+      "input": "assets/demo/inputs/Czech_000113.jpg",
+      "input_sha256": "1557ad7e50ca958d6883e4142947255dda9abce13699dfc2d60f5a3bb4ae90a9",
+      "http_status": 200,
+      "response": "class_confusion.json",
+      "annotation": "class_confusion.jpg",
+      "annotation_sha256": "1e0014132f2c263c5bea8bd6ddc08068994fea6b4f36e99b944ae9bfaca1d897"
+    }
+  ],
+  "json_note": "annotated_image_b64 decoded to the adjacent JPEG; other fields unchanged",
+  "model": {
+    "file": "models/best.pt",
+    "sha256": "12f65922fe28fbc963ba3bafb95390d850e96ca8fd99058f40f4ce00e54feddb"
+  },
+  "config": {
+    "file": "configs/config.yaml",
+    "sha256": "632a8d9b391874275955a1847856c0ba7d86aafe2d59278cea71504e0920f6fd"
+  },
+  "environment": {
+    "python": "3.12.14",
+    "system": "Linux",
+    "packages": {
+      "torch": "2.11.0+cpu",
+      "ultralytics": "8.4.91",
+      "fastapi": "0.143.0",
+      "uvicorn": "0.54.0"
+    },
+    "OMP_NUM_THREADS": "2",
+    "MKL_NUM_THREADS": "2"
+  }
+}

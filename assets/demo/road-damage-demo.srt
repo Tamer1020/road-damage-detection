@@ -1,0 +1,27 @@
+1
+00:00:00,000 --> 00:00:06,000
+Road damage detection: released YOLOv8n weights and real road images.
+
+2
+00:00:06,000 --> 00:00:18,000
+A real HTTP request returns detections, coordinates and confidence scores.
+
+3
+00:00:18,000 --> 00:00:30,000
+An annotated crack is missed. No detections does not mean no damage.
+
+4
+00:00:30,000 --> 00:00:42,000
+The published D20 reference is not recovered by the D00 prediction.
+
+5
+00:00:42,000 --> 00:00:48,000
+PyTorch and ONNX agree within explicit tolerances on scoped fixtures.
+
+6
+00:00:48,000 --> 00:00:54,000
+Historical CPU throughput and validation accuracy measure different things.
+
+7
+00:00:54,000 --> 00:01:00,000
+Inspect the evidence, reproduce the run and explore the API on GitHub.

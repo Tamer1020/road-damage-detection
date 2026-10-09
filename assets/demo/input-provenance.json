@@ -1,0 +1,45 @@
+{
+  "dataset": "RDD Czech road images",
+  "primary_dataset": "https://doi.org/10.6084/m9.figshare.21431547.v1",
+  "retrieval": "Public dataset mirror (LFS hashes verified); demo fixtures do not define or change the historical train/validation split.",
+  "files": [
+    {
+      "file": "Czech_000047.jpg",
+      "source_url": "https://github.com/Mustela4/Road-Damage-Detection/blob/c3af2ac1ffc275547563830e02790fdf32b169b7/Dataset/processed/train/images/Czech_000047.jpg",
+      "sha256": "75b16ecf806f44043a0627d1329751a6d5756948aa9c79fe8e722ce802229938",
+      "dimensions": [
+        640,
+        640
+      ]
+    },
+    {
+      "file": "Czech_000113.jpg",
+      "source_url": "https://github.com/Mustela4/Road-Damage-Detection/blob/c3af2ac1ffc275547563830e02790fdf32b169b7/Dataset/processed/train/images/Czech_000113.jpg",
+      "sha256": "1557ad7e50ca958d6883e4142947255dda9abce13699dfc2d60f5a3bb4ae90a9",
+      "dimensions": [
+        640,
+        640
+      ]
+    },
+    {
+      "file": "Czech_000157.jpg",
+      "source_url": "https://github.com/Mustela4/Road-Damage-Detection/blob/c3af2ac1ffc275547563830e02790fdf32b169b7/Dataset/processed/train/images/Czech_000157.jpg",
+      "sha256": "47bf7160b8ae8a54ce4977f728ddaf05756ce798b53409196f41d66826a3e5d0",
+      "dimensions": [
+        640,
+        640
+      ]
+    },
+    {
+      "file": "Czech_000006.jpg",
+      "source_url": "https://github.com/Mustela4/Road-Damage-Detection/blob/c3af2ac1ffc275547563830e02790fdf32b169b7/Dataset/processed/train/images/Czech_000006.jpg",
+      "sha256": "ccb45908bc3d1048ba452ed54478ca34724a78d3136a19509edec5d7b66f907d",
+      "dimensions": [
+        640,
+        640
+      ],
+      "matches_existing_benchmark_bytes": false
+    }
+  ],
+  "resolution_note": "These mirror copies are 640x640 and may be resized/re-encoded; the existing historical benchmark/visualization images are retained unchanged."
+}

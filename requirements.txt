@@ -1,4 +1,4 @@
-# Runtime dependencies (pinned by lower bound for reproducibility).
+# Minimum runtime dependencies; tested CPU versions are in constraints-cpu.txt.
 # GPU users: install the CUDA build of torch/torchvision from pytorch.org first.
 ultralytics>=8.2.0
 torch>=2.2.0

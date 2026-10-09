@@ -1,0 +1,18 @@
+{
+  "filename": "Czech_000047.jpg",
+  "count": 1,
+  "detections": [
+    {
+      "class_id": 0,
+      "label": "D00",
+      "confidence": 0.3356,
+      "bbox": [
+        59.87,
+        438.01,
+        206.15,
+        539.32
+      ]
+    }
+  ],
+  "inference_ms": 58.139
+}

@@ -37,3 +37,7 @@ htmlcov/
 Thumbs.db
 *.pt
 *.onnx
+
+# Reproducible demo intermediates
+assets/demo/preview/
+assets/demo/capture/server.log
