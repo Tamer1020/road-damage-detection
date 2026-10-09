@@ -58,6 +58,11 @@ class ApiConfig:
     host: str = "0.0.0.0"
     port: int = 8000
     max_upload_mb: int = 10
+    max_image_pixels: int = 20_000_000
+
+    def __post_init__(self):
+        if self.max_upload_mb <= 0 or self.max_image_pixels <= 0:
+            raise ValueError("API upload and pixel limits must be positive")
 
 
 @dataclass

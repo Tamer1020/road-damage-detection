@@ -24,6 +24,8 @@ def write_image(path: str | Path, image: np.ndarray) -> None:
 
 def decode_image(data: bytes) -> np.ndarray:
     """Decode raw image bytes (e.g. an upload) into a BGR ndarray."""
+    if not data:
+        raise ValueError("Image data is empty.")
     array = np.frombuffer(data, np.uint8)
     image = cv2.imdecode(array, cv2.IMREAD_COLOR)
     if image is None:

@@ -1,0 +1,10 @@
+# Contract/unit tests run without torch, ultralytics or model weights.
+pytest>=8.0.0
+ruff>=0.4.0
+PyYAML>=6.0.1
+numpy>=1.26.0
+opencv-python-headless>=4.9.0
+fastapi>=0.110.0
+python-multipart>=0.0.9
+pillow>=10.2.0
+httpx>=0.27.0

@@ -28,9 +28,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0.0", "ruff>=0.4.0"]
+dev = ["pytest>=8.0.0", "ruff>=0.4.0", "httpx>=0.27.0"]
 
 [project.scripts]
+rdd-prepare = "road_damage.preparation:main"
+rdd-verify-onnx = "road_damage.verification:main"
 rdd-train = "road_damage.train:main"
 rdd-eval = "road_damage.evaluate:main"
 rdd-infer = "road_damage.inference:main"
@@ -40,6 +42,9 @@ rdd-benchmark = "road_damage.benchmark:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+road_damage = ["demo.html"]
 
 [tool.ruff]
 line-length = 100

@@ -16,10 +16,13 @@ from .detection import Detection
 
 class RoadDamageModel:
     def __init__(self, weights: str | Path, device: int | str = "cpu") -> None:
+        if not Path(weights).is_file():
+            raise FileNotFoundError(f"Checkpoint not found: {weights}. Download the release first.")
         self.model = YOLO(str(weights))
         self.device = device
-        # Ultralytics exposes the class-id -> name mapping learned at train time.
-        self.names: dict[int, str] = self.model.names
+        # Read names after prediction: accessing YOLO.names earlier can initialize
+        # an ONNX backend before the requested device has been applied.
+        self.names: dict[int, str] = {}
 
     def predict_image(
         self,
@@ -27,6 +30,7 @@ class RoadDamageModel:
         conf: float = 0.25,
         iou: float = 0.45,
         imgsz: int = 640,
+        rect: bool = True,
     ) -> list[Detection]:
         """Run detection on a single image and return structured detections."""
         results = self.model.predict(
@@ -34,10 +38,12 @@ class RoadDamageModel:
             conf=conf,
             iou=iou,
             imgsz=imgsz,
+            rect=rect,
             device=self.device,
             verbose=False,
         )
         result = results[0]  # single image -> single result
+        self.names = result.names
         detections: list[Detection] = []
         for box in result.boxes:
             cls_id = int(box.cls[0])
